@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>yours.</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cb:#0b20e6;--bk:#14161f;--wh:#fff;--rd:#e5303a;--gr:#eef0f6;--bg:#fbfbfd;--ln:#dfe2ee;--mt:#6b7089;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*:before,*:after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--bk);font:14px/1.65 'Space Mono',ui-monospace,monospace}
+.led{font-family:'DotGothic16','Courier New',monospace;letter-spacing:.01em}
+.dots{background-image:radial-gradient(rgba(11,32,230,.2) 1px,transparent 1.2px);background-size:14px 14px}
+.dotsw{background-image:radial-gradient(rgba(11,32,230,.55) 1.4px,transparent 1.6px);background-size:12px 12px;-webkit-mask-image:linear-gradient(to left,#000,transparent 60%);mask-image:linear-gradient(to left,#000,transparent 60%)}
+.dotsk{background-image:none}
+nav{display:flex;justify-content:space-between;align-items:stretch;background:var(--wh);color:var(--bk);border-bottom:1px solid var(--ln);flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;padding:12px 20px;font-size:24px;cursor:pointer;background:none;border:0;color:var(--cb)}
+.cl{display:grid;grid-template-columns:7px 7px;gap:3px}.cl i{width:7px;height:7px;border-radius:50%;background:var(--cb)}.cl i:first-child{opacity:.35}
+nav .tabs{display:flex;padding-right:8px}
+nav .tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--mt);font:inherit;padding:0 14px;min-height:52px;cursor:pointer}
+nav .tabs button:hover{color:var(--cb)}
+nav .tabs button.on{color:var(--cb);border-bottom-color:var(--cb)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--cb);outline-offset:2px}
+.btn{font:700 13px 'Space Mono',monospace;border:1px solid var(--cb);background:var(--wh);color:var(--cb);padding:11px 20px;cursor:pointer;border-radius:6px;transition:background .15s,color .15s}
+.btn:hover{background:var(--gr)}
+.btn.p,.btn.c{background:var(--cb);color:var(--wh)}
+.btn.p:hover,.btn.c:hover{background:#0818b8}
+.hero{background:var(--wh);color:var(--cb);position:relative;border-bottom:1px solid var(--ln);padding:72px 24px 80px;overflow:hidden}
+.hero>*{position:relative}
+.hero h1{margin:0 0 22px;font-size:clamp(42px,9vw,104px);line-height:1;font-weight:400;max-width:900px;color:var(--cb)}
+.hero h1 span{display:inline-block}
+.man{max-width:520px;font-size:14px;margin:0 0 30px;color:var(--bk)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.hero .btn{box-shadow:none}
+.ticker{background:var(--wh);color:var(--mt);overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--ln);font-size:12px}
+.ticker div{display:inline-block;padding:9px 0;animation:tk 40s linear infinite}
+@keyframes tk{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.ticker div{animation:none}}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:980px;margin:0 auto;padding:40px 16px;gap:16px}
+.grid3>div{padding:22px;border:1px solid var(--ln);border-radius:6px;background:var(--wh)}
+.grid3 b{display:block;font-size:22px;margin-bottom:6px;color:var(--cb);font-weight:400}
+main{max-width:920px;margin:0 auto;padding:36px 16px 72px}
+h2.led{font-size:clamp(28px,5vw,42px);margin:0 0 6px;font-weight:400;color:var(--cb)}
+.sub{margin:0 0 24px;color:var(--mt)}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.steps div{flex:1 1 110px;padding:9px 4px;border-top:2px solid var(--ln);color:var(--mt);font-size:12px}
+.steps .on{border-top-color:var(--cb);color:var(--cb);font-weight:700}
+.steps .done{border-top-color:var(--cb);color:var(--bk)}
+.panel{border:1px solid var(--ln);background:var(--wh);padding:26px;position:relative;border-radius:8px;box-shadow:none}
+.panel h2.led{font-size:26px;margin-bottom:4px}
+label{display:block;font-weight:700;margin:16px 0 5px;font-size:12px}
+input,textarea,select{width:100%;font:inherit;border:1px solid var(--ln);border-radius:6px;padding:10px 12px;background:var(--wh);color:var(--bk)}
+input:focus,textarea:focus{border-color:var(--cb)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+@media(max-width:620px){.f2{grid-template-columns:1fr}}
+.err{color:var(--rd);min-height:1.2em;margin-top:4px;font-size:12px}
+.bad{border-color:var(--rd)!important}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}
+.cat{border:1px solid var(--ln);background:var(--wh);padding:18px 12px;font:700 13px 'Space Mono',monospace;cursor:pointer;text-align:left;min-height:76px;border-radius:6px;color:var(--bk)}
+.cat:hover{border-color:var(--cb)}
+.cat.on{border-color:var(--cb);color:var(--cb);background-color:#f1f3ff;background-image:radial-gradient(rgba(11,32,230,.35) 1px,transparent 1.2px);background-size:8px 8px;box-shadow:inset 0 0 0 1px var(--cb)}
+.notice{border:1px dashed var(--cb);padding:12px 14px;margin-top:16px;background:#f6f7ff;border-radius:6px}
+table{width:100%;border-collapse:collapse;background:var(--wh)}
+th,td{border-bottom:1px solid var(--ln);padding:10px;text-align:left;vertical-align:top}
+th{color:var(--mt);font-size:12px;font-weight:700;border-bottom-color:var(--cb)}
+.wrap{overflow-x:auto}
+.recap td:first-child{width:34%;color:var(--mt);font-weight:700}
+.tag{display:inline-block;border:1px solid var(--ln);padding:1px 10px;font-weight:700;white-space:nowrap;border-radius:999px;font-size:12px}
+.s-pending{background:var(--gr);color:var(--mt)}.s-review{background:#e8ebff;color:var(--cb);border-color:var(--cb)}.s-approved{background:var(--cb);color:var(--wh);border-color:var(--cb)}.s-revision{background:#fff0f0;color:var(--rd);border-color:var(--rd)}.s-rejected{background:var(--wh);text-decoration:line-through;color:var(--mt)}
+.nav{display:flex;justify-content:space-between;margin-top:26px;gap:10px}
+.ok{background:var(--wh);color:var(--cb);padding:56px 20px;border:1px solid var(--ln);border-radius:8px;text-align:center}
+.ok p{color:var(--bk)}
+.ok .id{font-size:clamp(26px,7vw,52px);color:var(--cb);display:inline-block;padding:6px 0;margin:10px 0;background:none}
+.badge{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--cb);padding:5px 14px;border-radius:999px;font-size:13px;margin-bottom:12px}
+.badge i{width:8px;height:8px;border-radius:50%;background:var(--cb);animation:bl 1.2s steps(2) infinite}
+@keyframes bl{50%{opacity:.2}}
+@media(prefers-reduced-motion:reduce){.badge i{animation:none}}
+.tl{margin:26px 0 0;padding:0;list-style:none}
+.tl li{display:grid;grid-template-columns:36px 1fr;gap:12px;min-height:76px}
+.tl .nd{display:flex;flex-direction:column;align-items:center}
+.tl .nd b{width:14px;height:14px;border-radius:50%;border:2px solid var(--ln);background:var(--wh);flex:none;margin-top:5px}
+.tl .nd s{flex:1;width:0;border-left:2px dotted var(--cb);margin:4px 0;opacity:.5}
+.tl li:last-child .nd s{display:none}
+.tl li.on .nd b{border-color:var(--cb);background:var(--wh);box-shadow:0 0 0 4px #e8ebff}
+.tl li.dn .nd b{background:var(--cb);border-color:var(--cb)}
+.tl li.end-revision .nd b,.tl li.end-rejected .nd b{background:var(--rd);border-color:var(--rd)}
+.tl li.off{color:#a3a7ba}
+.call{border:1px solid var(--rd);background:#fff7f7;padding:16px;margin-top:20px;border-radius:6px;box-shadow:none}
+.call h3{margin:0 0 6px;color:var(--rd);font-weight:400;font-size:20px}
+.mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px}
+.met{border:1px solid var(--ln);background:var(--wh);padding:14px;border-radius:6px;color:var(--mt)}
+.met .led{font-size:40px;line-height:1.1;color:var(--cb)}
+tr.row-s{cursor:pointer}tr.row-s:hover td{background:#f4f5ff}
+.dim{position:fixed;inset:0;background:rgba(20,22,31,.35);display:none;z-index:20}
+.dim.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--wh);border-left:1px solid var(--ln);z-index:21;overflow-y:auto;padding:22px;padding-top:calc(22px + env(safe-area-inset-top,0px));display:none}
+.drawer.on{display:block}
+.drawer .x{float:right}
+.drawer h2.led{color:var(--cb)}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:30;background:rgba(20,22,31,.45);padding:16px}
+.modal.on{display:flex}
+.modal>div{background:var(--wh);border:1px solid var(--ln);border-radius:8px;padding:22px;width:min(480px,100%);box-shadow:none}
+footer{background:var(--wh);color:var(--mt);padding:22px 16px;text-align:center;border-top:1px solid var(--ln)}
+
+/* glass-tile editorial restyle */
+:root{--bg:#f2f2f3;--ln:#e2e3ea}
+body{background:#f2f2f3 repeating-linear-gradient(90deg,transparent 0 119px,rgba(0,0,0,.045) 119px 120px);font-family:'DM Sans',system-ui,sans-serif;font-size:15px}
+.led{font-family:'Bricolage Grotesque','DM Sans',sans-serif;letter-spacing:-.03em;font-weight:500}
+nav{background:transparent;border:0}
+.logo{color:var(--bk);font-size:26px}
+.cl i{background:var(--cb)}
+nav .tabs button{font-weight:500;border-bottom:0;border-radius:999px;margin:8px 2px;min-height:36px;color:#555}
+nav .tabs button.on{background:var(--bk);color:#fff}
+.hero.dots{background:transparent;border:0;min-height:680px;padding:36px 24px 120px}
+.lab{font:700 15px/1.05 'DM Sans',sans-serif;color:#8d8d93;margin-bottom:56px;text-transform:uppercase}
+.hero h1{font-size:clamp(60px,14vw,168px);line-height:.9;letter-spacing:-.05em;font-weight:500;margin:0 0 26px;color:transparent;-webkit-text-fill-color:transparent;background:linear-gradient(180deg,#111 20%,#555);-webkit-background-clip:text;background-clip:text}
+.hero h1 span{background:linear-gradient(90deg,#0b20e6,#6f9bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding:0}
+.man{font-size:17px;max-width:440px;color:#222}
+.hero>.tiles,.ok>.tiles{position:absolute;left:0;right:0;bottom:0;height:62%;z-index:0}
+.tiles{display:grid;gap:5px;align-content:end;overflow:hidden;pointer-events:none;filter:blur(1.4px);-webkit-mask-image:linear-gradient(to top,#000 45%,transparent);mask-image:linear-gradient(to top,#000 45%,transparent)}
+.tiles i{aspect-ratio:1;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),inset 0 10px 16px rgba(255,255,255,.35)}
+.hero>*:not(.tiles){z-index:1}
+.ticker{display:none}
+.btn{border-radius:999px;padding:12px 24px;font:600 14px 'DM Sans',sans-serif;border:1px solid var(--bk);color:var(--bk);background:rgba(255,255,255,.7)}
+.btn:hover{background:#fff}
+.btn.p,.btn.c{background:var(--cb);border-color:var(--cb);color:#fff}
+.btn.p:hover,.btn.c:hover{background:#0818b8}
+.grid3 b{font-size:26px;background:linear-gradient(90deg,#0b20e6,#6f9bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:500}
+.grid3>div,.panel,.met,.modal>div,.drawer{background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.9);box-shadow:0 0 0 1px var(--ln);border-radius:18px}
+.drawer{border-radius:18px 0 0 18px}
+.grid3>div{border:1px solid rgba(255,255,255,.9)}
+h2.led{background:linear-gradient(180deg,#111,#555);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:clamp(34px,6vw,64px);letter-spacing:-.045em;line-height:1}
+.panel h2.led,.drawer h2.led{font-size:30px}
+.sub{color:#555}
+input,textarea{border-radius:10px;background:#fff;font-family:'DM Sans',sans-serif}
+label{font-weight:600;font-size:13px}
+.steps div{font-weight:500}
+.cat{border-radius:14px;background:rgba(255,255,255,.8);font-family:'DM Sans',sans-serif;font-weight:600}
+.cat.on{background:linear-gradient(145deg,#6f9bff,#0b20e6);color:#fff;border-color:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 10px 16px rgba(255,255,255,.3)}
+.ok{position:relative;overflow:hidden;border-radius:18px;background:rgba(255,255,255,.72);min-height:380px;padding-bottom:140px}
+.ok.dots{background-image:none}
+.ok>*:not(.tiles){position:relative;z-index:1}
+.ok .id{background:linear-gradient(90deg,#0b20e6,#6f9bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:clamp(34px,8vw,72px)}
+.ok p{color:#222}
+.met .led{background:none;-webkit-text-fill-color:var(--cb)}
+.tag,.notice,.call,th{font-family:'DM Sans',sans-serif}
+th{font-weight:700}
+footer{background:transparent;border:0;color:#8d8d93;font-family:'DM Sans',sans-serif}
+</style></head><body>
+<nav><button class="logo led" data-go="home" aria-label="yours. home"><span class="cl"><i></i><i></i><i></i><i></i></span>yours.</button>
+<div class="tabs"><button data-go="submit">Submit</button><button data-go="track">Track</button><button data-go="admin">Curate</button></div></nav>
+<div id="app"></div>
+<footer class="led">yours. &mdash; editorial work submission &amp; curation</footer>
+<div class="dim" id="dim"></div><aside class="drawer" id="drawer" aria-label="Submission details"></aside>
+<div class="modal" id="modal"><div id="mbox"></div></div>
+<script>
+const CATS=["Seni Rupa","Terapan","Kriya","Fotografi","Tari","Musik","Teater","Digital Art"];
+const STEPS=["01 ABOUT","02 WORK","03 CATEGORY","04 SHARE","05 REVIEW"];
+const ST={pending:"Submitted",review:"Under Review",approved:"Approved",revision:"Revision Required",rejected:"Rejected"};
+const KEY="yours.subs.v1";
+const seed=[
+{id:"#ART-2026-10482",name:"Rani Wulandari",email:"rani@example.com",wa:"+6281234567890",inst:"ISI Yogyakarta",city:"Yogyakarta",portfolio:"",title:"Benang Merah",year:"2026",medium:"Textile installation",desc:"Red thread across 40 meters of village memory.",cat:"Kriya",link:"https://drive.google.com/drive/folders/1AbCdEfG",status:"review",note:"",date:"2026-09-12"},
+{id:"#ART-2026-20931",name:"Bimo Aditya",email:"bimo@example.com",wa:"+6285711112222",inst:"ITS",city:"Surabaya",portfolio:"",title:"Static Garden",year:"2025",medium:"Generative video",desc:"A garden grown from sensor noise.",cat:"Digital Art",link:"https://drive.google.com/file/d/1XyZ/view",status:"revision",note:"Please upload the full-length cut and set the Drive link to public.",date:"2026-09-18"},
+{id:"#ART-2026-30517",name:"Sekar Ayu",email:"sekar@example.com",wa:"+6281399990000",inst:"",city:"Bandung",portfolio:"",title:"Gerak Pagi",year:"2026",medium:"Contemporary dance, 8 min",desc:"Morning commute choreographed as ritual.",cat:"Tari",link:"https://drive.google.com/drive/folders/1Qwerty",status:"pending",note:"",date:"2026-09-30"}];
+let subs;try{subs=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!Array.isArray(subs)||!subs.length)subs=seed.slice();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(subs))}catch(e){}};
+let view="home",step=0,form={},errs={},lastId="",trk={id:"",email:"",res:undefined};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const driveOk=u=>/^https:\/\/(drive|docs)\.google\.com\/(drive\/(u\/\d\/)?folders\/|file\/d\/|open\?id=|drive\/u\/\d\/folders\/)[\w-]+/.test(u.trim());
+function go(v){view=v;if(v==="submit"&&lastId){step=0;form={};lastId=""}window.scrollTo(0,0);render()}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)go(g.dataset.go)});
+function render(){
+ document.querySelectorAll("nav .tabs button").forEach(b=>b.classList.toggle("on",b.dataset.go===view));
+ $("#app").innerHTML=({home:vHome,submit:vSubmit,success:vSuccess,track:vTrack,admin:vAdmin})[view]();
+ if(view==="submit")bindForm();
+ document.querySelectorAll(".tiles").forEach(tiles);
+}
+function tiles(el){const[c,r]=el.dataset.t.split("x").map(Number);el.style.gridTemplateColumns=`repeat(${c},1fr)`;let h="";for(let i=0;i<r;i++)for(let j=0;j<c;j++){const n=Math.abs(Math.sin((i+1)*12.9898+(j+1)*78.233)*43758.5453)%1;let a=i/(r-1)*1.15-Math.abs(j/(c-1)-.78)*.6+(n-.5)*.45;a=Math.max(0,Math.min(1,a));if(a<.14)a=0;h+=`<i style="background:${a?`hsla(228,95%,${90-a*44}%,${.3+a*.65})`:"rgba(255,255,255,.35)"}"></i>`}el.innerHTML=h}
+function vHome(){const t="NOW OPEN — SUBMIT ART, DANCE, MUSIC, CRAFT, PHOTOGRAPHY — NO FEES — YOUR WORK. YOUR STORY. — ";
+return `<section class="hero dots"><div class="lab">Editorial<br>submissions</div><div class="tiles" data-t="14x9"></div>
+<h1 class="led">Your work.<br><span>Your story.</span></h1>
+<p class="man">yours. is a place to send us what you made. A curator reads every entry, tells you where it stands, and asks for changes when it needs them. Nothing disappears into an inbox.</p>
+<div class="row"><button class="btn p" data-go="submit">[ SUBMIT YOUR WORK ↗ ]</button><button class="btn" data-go="track">[ TRACK STATUS ]</button></div></section>
+<div class="ticker led"><div>${t.repeat(6)}</div></div>
+<section class="grid3"><div><b class="led">Send</b>Five short steps: who you are, what you made, its category, and a Drive link.</div><div><b class="led">Wait</b>You get an ID. Use it with your email to see the review stage anytime.</div><div><b class="led">Hear back</b>Approved, revision required (with notes), or rejected.</div></section>`}
+function fld(k,l,req,type="text",ph=""){return `<div><label for="${k}">${l}${req?" *":""}</label><input id="${k}" name="${k}" type="${type}" value="${esc(form[k]||"")}" placeholder="${ph}" class="${errs[k]?"bad":""}"><div class="err">${errs[k]||""}</div></div>`}
+function vSubmit(){
+ const bar=`<div class="steps led">${STEPS.map((s,i)=>`<div class="${i===step?"on":i<step?"done":""}">${s}</div>`).join("")}</div>`;
+ let b="";
+ if(step===0)b=`<h2 class="led">About you</h2><div class="f2">${fld("name","Full name",1)}${fld("email","Email",1,"email","you@mail.com")}${fld("wa","WhatsApp",1,"tel","+62…")}${fld("inst","Institution")}${fld("city","City")}${fld("portfolio","Portfolio link",0,"url","https://")}</div>`;
+ if(step===1)b=`<h2 class="led">Your work</h2><div class="f2">${fld("title","Title",1)}${fld("year","Year",0,"text","2026")}</div>${fld("medium","Medium",0,"text","Oil on canvas, 16mm film, …")}<label for="desc">Concept / description *</label><textarea id="desc" name="desc" rows="6" class="${errs.desc?"bad":""}">${esc(form.desc||"")}</textarea><div class="err">${errs.desc||""}</div>`;
+ if(step===2)b=`<h2 class="led">Category</h2><div class="cats">${CATS.map(c=>`<button type="button" class="cat ${form.cat===c?"on":""}" data-cat="${c}" aria-pressed="${form.cat===c}">${c}</button>`).join("")}</div><div class="err">${errs.cat||""}</div>`;
+ if(step===3)b=`<h2 class="led">Share your files</h2>${fld("link","Google Drive URL",1,"url","https://drive.google.com/…")}<div class="notice"><b>Set sharing to "Anyone with the link can view."</b> Curators cannot open private files, and private links will be sent back for revision.</div>`;
+ if(step===4){const r=[["Name",form.name],["Email",form.email],["WhatsApp",form.wa],["Institution",form.inst],["City",form.city],["Portfolio",form.portfolio],["Title",form.title],["Year",form.year],["Medium",form.medium],["Description",form.desc],["Category",form.cat],["Drive URL",form.link]];
+ b=`<h2 class="led">Review</h2><div class="wrap"><table class="recap">${r.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1])||"—"}</td></tr>`).join("")}</table></div>`}
+ return `<main><h2 class="led">Submit your work</h2><p class="sub">Fields marked * are required.</p>${bar}<form class="panel" id="f" novalidate>${b}<div class="nav"><button type="button" class="btn" id="bk" ${step===0?"disabled style='opacity:.4'":""}>[ ← BACK ]</button><button type="submit" class="btn ${step===4?"p":"c"}">${step===4?"[ SEND WORK ↗ ]":"[ NEXT → ]"}</button></div></form></main>`}
+function validate(){errs={};const f=form;
+ if(step===0){if(!(f.name||"").trim())errs.name="Enter your full name.";if(!/^\S+@\S+\.\S+$/.test(f.email||""))errs.email="Enter a valid email, like you@mail.com.";if(!/^\+?[\d\s-]{8,16}$/.test(f.wa||""))errs.wa="Enter a WhatsApp number with 8 or more digits."}
+ if(step===1){if(!(f.title||"").trim())errs.title="Give your work a title.";if((f.desc||"").trim().length<20)errs.desc="Describe the concept in at least 20 characters."}
+ if(step===2&&!f.cat)errs.cat="Pick one category.";
+ if(step===3&&!driveOk(f.link||""))errs.link="Use a Google Drive file or folder link (drive.google.com/…).";
+ return !Object.keys(errs).length}
+function bindForm(){const fm=$("#f");
+ fm.addEventListener("input",e=>{if(e.target.name)form[e.target.name]=e.target.value});
+ fm.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{form.cat=b.dataset.cat;errs={};render()});
+ $("#bk").onclick=()=>{if(step>0){step--;errs={};render()}};
+ fm.addEventListener("submit",e=>{e.preventDefault();
+  if(step<4){if(validate()){step++;errs={}}render();window.scrollTo(0,0);return}
+  const id="#ART-2026-"+String(Math.floor(Math.random()*90000)+10000);
+  subs.unshift({id,...form,status:"pending",note:"",date:new Date().toISOString().slice(0,10)});save();
+  lastId=id;trk={id,email:form.email,res:undefined};view="success";window.scrollTo(0,0);render()})}
+function vSuccess(){return `<main><div class="ok dots"><div class="tiles" data-t="12x5"></div><div class="badge led"><i></i>Received</div><div class="led" style="font-size:22px">Your submission ID</div><div class="id led">${lastId}</div><p>Keep this ID. You need it with your email to check status.</p><div class="row" style="justify-content:center"><button class="btn p" id="gt">[ TRACK THIS WORK ]</button><button class="btn" data-go="home">[ HOME ]</button></div></div></main>`}
+document.addEventListener("click",e=>{if(e.target.id==="gt"){trk.res=find();view="track";render()}});
+const find=()=>subs.find(s=>s.id.toLowerCase()===trk.id.trim().toLowerCase()&&s.email.toLowerCase()===trk.email.trim().toLowerCase())||null;
+function vTrack(){
+ let out="";const s=trk.res;
+ if(s===null)out=`<div class="call"><h3 class="led">No match</h3>Check that the ID (like #ART-2026-12345) and the email are the ones you used when submitting.</div>`;
+ if(s){const ended=["approved","revision","rejected"].includes(s.status);
+  const st=[["Submitted","Received on "+s.date,"dn"],["Under Review","A curator is reading your work.",s.status==="pending"?"off":s.status==="review"?"on":"dn"],[ended?ST[s.status]:"Decision","Approved, revision required, or rejected.",ended?"dn end-"+s.status:"off"]];
+  out=`<div class="panel" style="margin-top:20px"><div class="led" style="font-size:26px">${esc(s.title)}</div><div>${esc(s.id)} · ${esc(s.cat)}</div><ul class="tl">${st.map(x=>`<li class="${x[2]}"><div class="nd"><b></b><s></s></div><div><b class="led" style="font-size:18px">${x[0]}</b><br>${x[1]}</div></li>`).join("")}</ul>
+  ${s.status==="revision"?`<div class="call"><h3 class="led">Revision required</h3><b>Curator notes:</b><br>${esc(s.note)||"No notes provided."}</div>`:""}</div>`}
+ return `<main><h2 class="led">Track status</h2><p class="sub">Enter the ID from your confirmation and the email you submitted with.</p>
+ <form class="panel" id="tf"><div class="f2"><div><label for="tid">Submission ID</label><input id="tid" value="${esc(trk.id)}" placeholder="#ART-2026-12345"></div><div><label for="tem">Email</label><input id="tem" type="email" value="${esc(trk.email)}"></div></div><div class="nav" style="justify-content:flex-start"><button class="btn c" type="submit">[ CHECK STATUS ]</button></div></form>${out}</main>`}
+document.addEventListener("submit",e=>{if(e.target.id==="tf"){e.preventDefault();trk.id=$("#tid").value;trk.email=$("#tem").value;trk.res=find();render()}});
+function vAdmin(){const n=k=>subs.filter(s=>s.status===k).length;
+ return `<main><h2 class="led">Curation console</h2><p class="sub">Select a row to inspect and decide.</p>
+ <div class="mets">${[["Total",subs.length],["Pending",n("pending")],["Review",n("review")],["Approved",n("approved")]].map(m=>`<div class="met"><div>${m[0]}</div><div class="led">${m[1]}</div></div>`).join("")}</div>
+ <div class="wrap"><table><thead><tr><th>ID</th><th>Title</th><th>Artist</th><th>Category</th><th>Status</th></tr></thead><tbody>${subs.map((s,i)=>`<tr class="row-s" tabindex="0" data-i="${i}"><td>${esc(s.id)}</td><td>${esc(s.title)}</td><td>${esc(s.name)}</td><td>${esc(s.cat)}</td><td><span class="tag s-${s.status}">${ST[s.status]}</span></td></tr>`).join("")}</tbody></table></div>
+ <p><button class="btn" id="rst">[ RESET SAMPLE DATA ]</button></p></main>`}
+let cur=null;
+function openD(i){cur=i;const s=subs[i];
+ const rows=[["ID",s.id],["Submitted",s.date],["Name",s.name],["Email",s.email],["WhatsApp",s.wa],["Institution",s.inst],["City",s.city],["Portfolio",s.portfolio],["Title",s.title],["Year",s.year],["Medium",s.medium],["Description",s.desc],["Category",s.cat]];
+ $("#drawer").innerHTML=`<button class="btn x" id="dx">[ X ]</button><h2 class="led" style="margin:0 0 10px;font-size:28px">${esc(s.title)}</h2><span class="tag s-${s.status}">${ST[s.status]}</span>
+ <div class="wrap" style="margin-top:14px"><table class="recap">${rows.map(r=>`<tr><td>${r[0]}</td><td>${esc(r[1])||"—"}</td></tr>`).join("")}</table></div>
+ ${s.note?`<div class="notice"><b>Notes sent:</b> ${esc(s.note)}</div>`:""}
+ <div class="acts"><a class="btn c" style="text-decoration:none" href="${esc(s.link)}" target="_blank" rel="noopener">[ OPEN DRIVE ↗ ]</a></div>
+ <div class="acts"><button class="btn" data-a="review">Mark Review</button><button class="btn c" data-a="approved">Approve</button><button class="btn p" data-a="revision">Request Revision</button><button class="btn" data-a="rejected">Reject</button></div>`;
+ $("#drawer").classList.add("on");$("#dim").classList.add("on")}
+function closeD(){$("#drawer").classList.remove("on");$("#dim").classList.remove("on")}
+function setS(st,note){subs[cur].status=st;if(st==="revision")subs[cur].note=note;save();closeD();render()}
+document.addEventListener("click",e=>{
+ const r=e.target.closest("tr[data-i]");if(r)openD(+r.dataset.i);
+ if(e.target.id==="dx"||e.target.id==="dim")closeD();
+ if(e.target.id==="rst"){subs=seed.slice();save();render()}
+ const a=e.target.dataset.a;if(a){if(a==="revision"){$("#mbox").innerHTML=`<h3 class="led" style="margin:0 0 8px;font-size:24px">Request revision</h3><label for="nt">Feedback for the artist *</label><textarea id="nt" rows="5"></textarea><div class="err" id="ne"></div><div class="acts"><button class="btn p" id="ns">[ SEND REVISION REQUEST ]</button><button class="btn" id="nc">[ CANCEL ]</button></div>`;$("#modal").classList.add("on");$("#nt").focus()}else setS(a)}
+ if(e.target.id==="nc")$("#modal").classList.remove("on");
+ if(e.target.id==="ns"){const v=$("#nt").value.trim();if(!v){$("#ne").textContent="Write what the artist should change.";return}$("#modal").classList.remove("on");setS("revision",v)}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeD();$("#modal").classList.remove("on")}if(e.key==="Enter"&&e.target.matches("tr[data-i]"))openD(+e.target.dataset.i)});
+render();
+</script></body></html>

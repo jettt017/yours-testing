@@ -1,0 +1,70 @@
+:root {
+  /* 3.1 Design Tokens - Light Mode (Default) */
+  --cb: #000072;
+  --cb-light: #4865f4;
+  --bk: #14161f;
+  --bg: #f2f2f3;
+  --ln: #e2e3ea;
+  --mt: #6b7089;
+  --rd: #ff262f;
+
+  /* Red & Blue Accent System */
+  --accent-red: #ff262f;
+  --accent-red-hover: #e0161f;
+  --btn-pri-bg: #000072;
+  --btn-pri-color: #ffffff;
+  --btn-pri-hover: #00005a;
+
+  /* Surface & Component Helpers */
+  --wh: #ffffff;
+  --panel-bg: rgba(255, 255, 255, 0.75);
+  --panel-border: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --input-bg: #ffffff;
+  --table-hover: rgba(0, 0, 114, 0.04);
+  --backdrop-overlay: rgba(242, 242, 243, 0.82);
+  --grid-line-color: rgba(0, 0, 0, 0.045);
+  --footer-bg: rgba(255, 255, 255, 0.72);
+  --tab-active-bg: rgba(0, 0, 114, 0.08);
+  --btn-sec-bg: rgba(255, 255, 255, 0.75);
+  --btn-sec-hover: #ffffff;
+  --timeline-line: rgba(0, 0, 114, 0.35);
+
+  /* Primary Font: Bricolage Grotesque across the entire application */
+  --font-primary: 'Bricolage Grotesque', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-headline: var(--font-primary);
+  --font-body: var(--font-primary);
+}
+
+[data-theme="dark"] {
+  /* 3.1 Design Tokens - Dark Mode: Deep Blue Canvas + White Type + Electric Red Accent */
+  --cb: #ff262f;          /* Electric Vermilion Red from reference image */
+  --cb-light: #ff6b72;
+  --bk: #ffffff;          /* Pure crisp white typography */
+  --bg: #000072;          /* Signature brand logo blue background */
+  --ln: rgba(255, 255, 255, 0.18);
+  --mt: rgba(255, 255, 255, 0.72);
+  --rd: #ff262f;
+
+  /* Red & Blue Accent System */
+  --accent-red: #ff262f;
+  --accent-red-hover: #e0161f;
+  --btn-pri-bg: #ff262f;
+  --btn-pri-color: #ffffff;
+  --btn-pri-hover: #e0161f;
+
+  /* Helper tokens for deep blue surfaces */
+  --wh: #ffffff;
+  --panel-bg: rgba(0, 0, 85, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.2);
+  --card-bg: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(0, 0, 80, 0.6);
+  --table-hover: rgba(255, 255, 255, 0.08);
+  --backdrop-overlay: rgba(0, 0, 114, 0.9);
+  --grid-line-color: rgba(255, 255, 255, 0.05);
+  --footer-bg: rgba(0, 0, 88, 0.82);
+  --tab-active-bg: rgba(255, 255, 255, 0.18);
+  --btn-sec-bg: rgba(255, 255, 255, 0.1);
+  --btn-sec-hover: rgba(255, 255, 255, 0.2);
+  --timeline-line: rgba(255, 255, 255, 0.35);
+}
