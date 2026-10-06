@@ -31,7 +31,7 @@ export interface Submission {
 
 export type ViewType = 'home' | 'submit' | 'success' | 'track' | 'admin';
 
-export type UserRole = 'creator' | 'admin';
+export type UserRole = 'creator' | 'admin' | 'superadmin';
 
 export interface User {
   id: string;

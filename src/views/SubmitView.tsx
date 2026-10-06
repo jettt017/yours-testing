@@ -4,6 +4,7 @@ import { validateStep } from '../utils/validation';
 import { ISubmissionRepository } from '../services/submissionRepository';
 import { LogoLoader } from '../components/LogoLoader';
 import { categoryService } from '../services/categoryService';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface SubmitViewProps {
   repository: ISubmissionRepository;
@@ -22,6 +23,7 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState<SubmissionFormData>({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
@@ -119,7 +121,7 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
       onSuccess(created.id, created.email);
     } catch (err) {
       console.error('Failed to submit artwork', err);
-      alert('An error occurred while saving your submission. Please try again.');
+      setSubmitError('An error occurred while saving your submission. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -188,7 +190,7 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
       </div>
 
       {/* Single Form with State Kept Across Steps */}
-      <form onSubmit={handleSubmit} noValidate className="glass-panel submit-form-panel" style={{ padding: '32px 24px' }}>
+      <form onSubmit={handleSubmit} noValidate className="glass-panel submit-form-panel">
         {/* Step 1: About */}
         {currentStep === 0 && (
           <div>
@@ -366,13 +368,7 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
               Select the primary category that best defines this artwork:
             </p>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-                gap: '12px',
-              }}
-            >
+            <div className="category-grid-container">
               {categories.map((c) => {
                 const isSelected = formData.cat === c;
                 return (
@@ -384,10 +380,12 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
                     }}
                     aria-pressed={isSelected}
                     style={{
-                      border: isSelected ? '1px solid transparent' : '1px solid var(--ln)',
+                      border: isSelected ? '1px solid transparent' : '1px solid var(--panel-border)',
                       background: isSelected
                         ? 'linear-gradient(145deg, var(--cb-light), var(--cb))'
                         : 'var(--card-bg)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
                       color: isSelected ? '#ffffff' : 'var(--bk)',
                       padding: '20px 16px',
                       borderRadius: '14px',
@@ -400,9 +398,9 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
                       display: 'flex',
                       alignItems: 'flex-end',
                       boxShadow: isSelected
-                        ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.5), inset 0 10px 16px rgba(255, 255, 255, 0.3)'
-                        : 'none',
-                      transition: 'transform 0.1s ease',
+                        ? '0 8px 20px rgba(0, 0, 114, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.5)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.03)',
+                      transition: 'transform 0.1s ease, box-shadow 0.15s ease',
                     }}
                   >
                     {c}
@@ -442,8 +440,10 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
               style={{
                 border: '1px dashed var(--cb)',
                 padding: '16px 20px',
-                borderRadius: '10px',
+                borderRadius: '14px',
                 backgroundColor: 'var(--tab-active-bg)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
                 marginTop: '16px',
                 fontSize: '14px',
                 lineHeight: 1.6,
@@ -507,6 +507,7 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
                           padding: '12px 10px',
                           color: 'var(--bk)',
                           wordBreak: 'break-word',
+                          overflowWrap: 'anywhere',
                           verticalAlign: 'top',
                         }}
                       >
@@ -564,6 +565,16 @@ export const SubmitView: React.FC<SubmitViewProps> = ({
           label="Mendaftarkan karya seni Anda ke kurator..."
         />
       )}
+
+      {/* Custom Error Alert Dialog */}
+      <ConfirmModal
+        isOpen={!!submitError}
+        title="Submission Error"
+        message={submitError || ''}
+        type="alert"
+        confirmLabel="OK"
+        onConfirm={() => setSubmitError(null)}
+      />
     </main>
   );
 };

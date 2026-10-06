@@ -60,6 +60,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setError('Please enter your password.');
       return;
     }
+    if (tab === 'register' && password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -82,11 +86,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleQuickLogin = (role: 'creator' | 'admin') => {
-    const user = authService.quickLogin(role);
-    onSuccess(user);
-    onClose();
-  };
 
   return (
     <div
@@ -230,7 +229,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           <div style={{ marginBottom: '6px' }}>
             <label htmlFor="auth-password" className="field-label">
-              Password *
+              Password * {tab === 'register' && <span style={{ fontSize: '11px', color: 'var(--mt)', fontWeight: 400 }}>(min. 8 characters)</span>}
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -281,45 +280,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </form>
 
-        {/* Demo Fast Logins Section */}
-        <div
-          style={{
-            marginTop: '24px',
-            paddingTop: '16px',
-            borderTop: '1px dashed var(--ln)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '11px',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              color: 'var(--mt)',
-              marginBottom: '10px',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Quick 1-Click Demo Accounts
-          </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => handleQuickLogin('creator')}
-              style={{ fontSize: '12px', padding: '8px 14px' }}
-            >
-              Demo: Creator (Rani)
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => handleQuickLogin('admin')}
-              style={{ fontSize: '12px', padding: '8px 14px' }}
-            >
-              Demo: Admin Curator
-            </button>
-          </div>
-        </div>
+
       </div>
     </div>
   );

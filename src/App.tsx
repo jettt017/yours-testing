@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
 import { ViewType, User } from './types';
+import { useTheme } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { AuthModal } from './components/AuthModal';
 import { getSubmissionRepository } from './services/submissionRepository';
 import { authService } from './services/authService';
 import { LogoLoader } from './components/LogoLoader';
+import { PatternWaves } from './components/PatternWaves';
 
 // Code-splitting Lazy Loaded Views
 const HomeView = lazy(() => import('./views/HomeView').then((m) => ({ default: m.HomeView })));
@@ -30,6 +32,7 @@ const ViewFallback: React.FC = () => (
 
 export const App: React.FC = () => {
   const repository = useMemo(() => getSubmissionRepository(), []);
+  const { isDark } = useTheme();
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => authService.getCurrentUser());
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -111,23 +114,23 @@ export const App: React.FC = () => {
     setIsPageFadingOut(false);
     setIsPageLoading(true);
 
-    // Switch view underneath frosted glass while typewriter types
+    // Switch the view while overlay is fully opaque (at ~280ms, safely inside blur window)
     window.setTimeout(() => {
       window.location.hash = view === 'home' ? '' : view;
       setCurrentView(view);
       window.scrollTo({ top: 0, behavior: 'instant' });
-    }, 420);
+    }, 280);
 
-    // Smooth fade out after typewriter has completed
+    // Begin fade-out once the new page has had time to render underneath
     window.setTimeout(() => {
       setIsPageFadingOut(true);
-    }, 680);
+    }, 560);
 
-    // Clean unmount after fade-out transition finishes
+    // Fully unmount loader after fade-out transition finishes (35ms buffer)
     window.setTimeout(() => {
       setIsPageLoading(false);
       setIsPageFadingOut(false);
-    }, 980);
+    }, 920);
   };
 
   const handleOpenAuth = (intent?: string) => {
@@ -164,14 +167,73 @@ export const App: React.FC = () => {
     navigateTo('track');
   };
 
+  const isHomeView = currentView === 'home';
+  const isWavePage = ['home', 'submit', 'track', 'success', 'admin'].includes(currentView);
+
+  // Background wave parameters:
+  // - Landing page (HomeView): high fidelity & interactive mouse ripple waves
+  // - Other pages (SubmitView, TrackView, AdminView, SuccessView): clearly visible ambient waves with disabled interaction
+  const waveOpacity = isHomeView
+    ? (isDark ? 0.72 : 0.42)
+    : (isDark ? 0.50 : 0.36);
+
+  const waveSpeed = isHomeView ? 0.16 : 0.10;
+  const isWaveInteractive = isHomeView;
+
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
+        position: 'relative',
       }}
     >
+      {/* Persistent Ambient Pattern Waves Background for Light & Dark Themes */}
+      {isWavePage && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        >
+          <PatternWaves
+            key={isDark ? 'dark-waves' : 'light-waves'}
+            preset="silk"
+            backgroundColor={isDark ? '#00003c' : '#f2f2f3'}
+            color={isDark ? '#ffffff' : '#8299c2'}
+            opacity={waveOpacity}
+            speed={waveSpeed}
+            depth={0.88}
+            interactive={isWaveInteractive}
+            cursorSize={72}
+            cursorStrength={0.32}
+            fade="none"
+          />
+          {/* Subtle translucent tint so typography and inputs remain 100% crisp while wave movement is visible */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: isDark
+                ? isHomeView
+                  ? 'linear-gradient(135deg, rgba(0, 0, 114, 0.32) 0%, rgba(0, 0, 75, 0.10) 50%, rgba(0, 0, 114, 0.35) 100%)'
+                  : 'linear-gradient(135deg, rgba(0, 0, 50, 0.38) 0%, rgba(0, 0, 40, 0.22) 50%, rgba(0, 0, 50, 0.38) 100%)'
+                : isHomeView
+                  ? 'linear-gradient(135deg, rgba(242, 242, 243, 0.38) 0%, rgba(242, 242, 243, 0.12) 50%, rgba(242, 242, 243, 0.42) 100%)'
+                  : 'linear-gradient(135deg, rgba(242, 242, 243, 0.40) 0%, rgba(242, 242, 243, 0.18) 50%, rgba(242, 242, 243, 0.40) 100%)',
+              transition: 'background 0.3s ease',
+            }}
+          />
+        </div>
+      )}
+
       <Navbar
         currentView={currentView}
         adminTab={adminTab}
@@ -191,7 +253,7 @@ export const App: React.FC = () => {
       {isPageLoading && <div className="nav-progress-bar" />}
 
       {/* Main View Area with Code-Splitting Lazy Loading & Fluid Spring Transition */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
         <Suspense fallback={<ViewFallback />}>
           <div
             key={currentView}
@@ -258,6 +320,8 @@ export const App: React.FC = () => {
           borderTop: '1px solid var(--ln)',
           padding: '24px 24px',
           transition: 'background-color 0.25s ease, border-color 0.2s ease',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <div
@@ -275,7 +339,7 @@ export const App: React.FC = () => {
           }}
         >
           <div style={{ color: 'var(--bk)', fontWeight: 500 }}>
-            yours. &mdash; editorial artwork curation platform
+            yours &mdash; editorial artwork curation platform
           </div>
 
           <div style={{ color: 'var(--mt)' }}>

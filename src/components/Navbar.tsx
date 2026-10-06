@@ -25,7 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { isDark } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const isAdmin = currentUser?.role === 'admin';
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
   const isCreator = currentUser?.role === 'creator';
 
   useEffect(() => {
@@ -53,17 +53,21 @@ export const Navbar: React.FC<NavbarProps> = ({
     onLogout();
   };
 
+  const isHome = currentView === 'home';
+
   return (
-    <header style={{ position: 'relative', zIndex: 30 }}>
+    <header
+      style={{
+        position: isHome ? 'absolute' : 'relative',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 30,
+        backgroundColor: 'transparent',
+      }}
+    >
       <nav
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 24px',
-          backgroundColor: 'transparent',
-          gap: '12px',
-        }}
+        className="navbar-nav-container"
         aria-label="Main Navigation"
       >
         {/* Logo button */}
@@ -275,7 +279,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
-                  {currentUser.name} {isAdmin && '(Admin)'}
+                  {currentUser.name} {currentUser.role === 'superadmin' ? '(Super Admin)' : isAdmin ? '(Admin)' : ''}
                 </span>
 
                 <button
@@ -402,7 +406,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
-                  {currentUser.name} {isAdmin && '(Admin)'}
+                  {currentUser.name} {currentUser.role === 'superadmin' ? '(Super Admin)' : isAdmin ? '(Admin)' : ''}
                 </span>
 
                 <button

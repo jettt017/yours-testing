@@ -1,55 +1,100 @@
-import { User } from '../types';
+import { User, UserRole } from '../types';
+import { supabase } from './supabaseClient';
 
 export const AUTH_STORAGE_KEY = 'yours.auth.v1';
 
 export interface StoredAccount extends User {
-  password: string;
+  password?: string;
+  created_at?: string;
 }
 
-// Hardcoded users database
-export const MOCK_USERS: StoredAccount[] = [
-  {
-    id: 'usr_creator_01',
-    name: 'Rani Wulandari',
-    email: 'rani@example.com',
-    password: 'user123',
-    role: 'creator',
-  },
-  {
-    id: 'usr_creator_demo',
-    name: 'Creator Demo',
-    email: 'creator@example.com',
-    password: 'user123',
-    role: 'creator',
-  },
-  {
-    id: 'usr_admin_01',
-    name: 'Lead Curator',
-    email: 'admin@yours.editorial',
-    password: 'admin123',
-    role: 'admin',
-  },
-];
-
 class AuthService {
-  private getAccounts(): StoredAccount[] {
+  private cachedUser: User | null = null;
+  private cachedUsersList: StoredAccount[] = [];
+
+  constructor() {
+    this.initSession();
+  }
+
+  private initSession() {
     try {
-      const data = localStorage.getItem('yours.users.v1');
-      if (!data) {
-        localStorage.setItem('yours.users.v1', JSON.stringify(MOCK_USERS));
-        return MOCK_USERS;
+      const data = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (data) {
+        this.cachedUser = JSON.parse(data);
       }
-      return JSON.parse(data);
     } catch {
-      return MOCK_USERS;
+      this.cachedUser = null;
+    }
+
+    if (supabase) {
+      // Sync with Supabase Auth state
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          this.syncProfile(
+            session.user.id,
+            session.user.email || '',
+            session.user.user_metadata?.role,
+            session.user.user_metadata?.name
+          );
+        } else if (!this.cachedUser) {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+        }
+      });
+
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          this.cachedUser = null;
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+        } else if (session.user) {
+          await this.syncProfile(
+            session.user.id,
+            session.user.email || '',
+            session.user.user_metadata?.role,
+            session.user.user_metadata?.name
+          );
+        }
+      });
+
+      // Initial load of profiles for admin
+      this.fetchProfiles();
+    }
+  }
+
+  private async syncProfile(userId: string, email: string, metaRole?: string, metaName?: string): Promise<User | null> {
+    if (!supabase) return this.cachedUser;
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      const role = (profile?.role as UserRole) || (metaRole as UserRole) || 'creator';
+      const name = profile?.name || metaName || email.split('@')[0];
+
+      const user: User = {
+        id: userId,
+        name,
+        email: profile?.email || email,
+        role,
+      };
+
+      this.cachedUser = user;
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+      return user;
+    } catch {
+      return this.cachedUser;
     }
   }
 
   getCurrentUser(): User | null {
+    if (this.cachedUser) return this.cachedUser;
     try {
       const data = localStorage.getItem(AUTH_STORAGE_KEY);
       if (!data) return null;
-      return JSON.parse(data);
+      this.cachedUser = JSON.parse(data);
+      return this.cachedUser;
     } catch {
       return null;
     }
@@ -57,125 +102,225 @@ class AuthService {
 
   async login(email: string, pass: string): Promise<User> {
     const cleanEmail = email.trim().toLowerCase();
-    const accounts = this.getAccounts();
 
-    const match = accounts.find(
-      (acc) => acc.email.toLowerCase() === cleanEmail && acc.password === pass
-    );
-
-    if (!match) {
-      throw new Error('Invalid email or password.');
+    if (!supabase) {
+      throw new Error('Supabase client is not configured.');
     }
 
-    const user: User = {
-      id: match.id,
-      name: match.name,
-      email: match.email,
-      role: match.role,
-    };
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password: pass,
+    });
 
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    if (error || !data.user) {
+      throw new Error(error?.message || 'Invalid email or password.');
+    }
+
+    const user = await this.syncProfile(
+      data.user.id,
+      data.user.email || cleanEmail,
+      data.user.user_metadata?.role,
+      data.user.user_metadata?.name
+    );
+    if (!user) {
+      throw new Error('Failed to retrieve user profile.');
+    }
     return user;
   }
 
   async register(name: string, email: string, pass: string): Promise<User> {
     const cleanEmail = email.trim().toLowerCase();
-    const accounts = this.getAccounts();
+    const cleanName = name.trim();
 
-    if (accounts.some((acc) => acc.email.toLowerCase() === cleanEmail)) {
-      throw new Error('An account with this email already exists.');
+    if (pass.length < 8) {
+      throw new Error('Password must be at least 8 characters long.');
     }
 
-    const newUser: StoredAccount = {
-      id: `usr_${Date.now()}`,
-      name: name.trim(),
+    if (!supabase) {
+      throw new Error('Supabase client is not configured.');
+    }
+
+    const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password: pass,
+      options: {
+        data: {
+          name: cleanName,
+          role: 'creator',
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data.user) {
+      throw new Error('Registration failed.');
+    }
+
+    // Insert or update profile directly to ensure profile exists immediately
+    await supabase.from('profiles').upsert([
+      {
+        id: data.user.id,
+        name: cleanName,
+        email: cleanEmail,
+        role: 'creator',
+      },
+    ]);
+
+    const user: User = {
+      id: data.user.id,
+      name: cleanName,
+      email: cleanEmail,
       role: 'creator',
     };
 
-    accounts.push(newUser);
-    localStorage.setItem('yours.users.v1', JSON.stringify(accounts));
-
-    const user: User = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-    };
-
+    this.cachedUser = user;
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     return user;
   }
 
-  quickLogin(role: 'creator' | 'admin'): User {
-    const target =
-      role === 'admin'
-        ? MOCK_USERS.find((u) => u.role === 'admin')!
-        : MOCK_USERS.find((u) => u.email === 'rani@example.com')!;
-
-    const user: User = {
-      id: target.id,
-      name: target.name,
-      email: target.email,
-      role: target.role,
-    };
-
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    return user;
-  }
-
-  logout(): void {
+  async logout(): Promise<void> {
+    this.cachedUser = null;
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+  }
+
+  async fetchProfiles(): Promise<StoredAccount[]> {
+    if (!supabase) return this.cachedUsersList;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        this.cachedUsersList = data.map((p) => ({
+          id: p.id,
+          name: p.name,
+          email: p.email,
+          role: p.role as UserRole,
+          created_at: p.created_at,
+        }));
+      }
+    } catch (e) {
+      console.error('Failed to fetch profiles', e);
+    }
+    return this.cachedUsersList;
   }
 
   getAllUsers(): StoredAccount[] {
-    return this.getAccounts();
+    // Return cached list, and refresh in background
+    this.fetchProfiles();
+    return this.cachedUsersList;
   }
 
-  updateUserRole(userId: string, newRole: User['role']): boolean {
-    const accounts = this.getAccounts();
-    const idx = accounts.findIndex((u) => u.id === userId);
-    if (idx === -1) return false;
-    accounts[idx].role = newRole;
-    localStorage.setItem('yours.users.v1', JSON.stringify(accounts));
+  async updateUserRole(userId: string, newRole: UserRole): Promise<boolean> {
+    if (!supabase) return false;
 
-    // If updating current logged in user
-    const current = this.getCurrentUser();
-    if (current && current.id === userId) {
-      current.role = newRole;
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(current));
+    // Call RPC promote_user_role
+    const { error: rpcError } = await supabase.rpc('promote_user_role', {
+      target_user_id: userId,
+      new_role: newRole,
+    });
+
+    if (rpcError) {
+      console.warn('RPC promote_user_role failed, trying direct update', rpcError);
+      const { error: tableError } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', userId);
+
+      if (tableError) {
+        console.error('Failed to update role', tableError);
+        return false;
+      }
+    }
+
+    // Update cache
+    const idx = this.cachedUsersList.findIndex((u) => u.id === userId);
+    if (idx !== -1) {
+      this.cachedUsersList[idx].role = newRole;
+    }
+
+    if (this.cachedUser && this.cachedUser.id === userId) {
+      this.cachedUser.role = newRole;
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(this.cachedUser));
     }
     return true;
   }
 
-  deleteUser(userId: string): boolean {
-    const accounts = this.getAccounts();
-    const filtered = accounts.filter((u) => u.id !== userId);
-    if (filtered.length === accounts.length) return false;
-    localStorage.setItem('yours.users.v1', JSON.stringify(filtered));
+  async deleteUser(userId: string): Promise<boolean> {
+    if (!supabase) return false;
+
+    // Try RPC first to delete both from auth.users and profiles
+    const { error: rpcError } = await supabase.rpc('delete_user_by_admin', {
+      target_user_id: userId,
+    });
+
+    if (rpcError) {
+      console.warn('RPC delete failed, falling back to direct table delete', rpcError);
+      const { error: tableError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (tableError) {
+        console.error('Failed to delete profile', tableError);
+        return false;
+      }
+    }
+
+    this.cachedUsersList = this.cachedUsersList.filter((u) => u.id !== userId);
     return true;
   }
 
-  createUser(name: string, email: string, pass: string, role: User['role']): StoredAccount {
+  async createUser(name: string, email: string, pass: string, role: UserRole): Promise<StoredAccount> {
+    if (!supabase) throw new Error('Supabase client not configured');
+
     const cleanEmail = email.trim().toLowerCase();
-    const accounts = this.getAccounts();
+    const cleanName = name.trim();
 
-    if (accounts.some((acc) => acc.email.toLowerCase() === cleanEmail)) {
-      throw new Error('User with this email already exists.');
+    if (pass.length < 8) {
+      throw new Error('Password must be at least 8 characters long.');
     }
 
-    const newUser: StoredAccount = {
-      id: `usr_${Date.now()}`,
-      name: name.trim(),
+    const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password: pass,
-      role: role,
+      options: {
+        data: {
+          name: cleanName,
+          role,
+        },
+      },
+    });
+
+    if (error || !data.user) {
+      throw new Error(error?.message || 'Failed to create user.');
+    }
+
+    await supabase.from('profiles').upsert([
+      {
+        id: data.user.id,
+        name: cleanName,
+        email: cleanEmail,
+        role,
+      },
+    ]);
+
+    const newAccount: StoredAccount = {
+      id: data.user.id,
+      name: cleanName,
+      email: cleanEmail,
+      role,
     };
 
-    accounts.push(newUser);
-    localStorage.setItem('yours.users.v1', JSON.stringify(accounts));
-    return newUser;
+    this.cachedUsersList.unshift(newAccount);
+    return newAccount;
   }
 }
 

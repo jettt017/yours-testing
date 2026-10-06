@@ -17,16 +17,16 @@
 
   /* Surface & Component Helpers */
   --wh: #ffffff;
-  --panel-bg: rgba(255, 255, 255, 0.75);
-  --panel-border: rgba(255, 255, 255, 0.9);
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --input-bg: #ffffff;
+  --panel-bg: rgba(255, 255, 255, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.85);
+  --card-bg: rgba(255, 255, 255, 0.68);
+  --input-bg: rgba(255, 255, 255, 0.85);
   --table-hover: rgba(0, 0, 114, 0.04);
-  --backdrop-overlay: rgba(242, 242, 243, 0.82);
+  --backdrop-overlay: rgba(242, 242, 243, 0.72);
   --grid-line-color: rgba(0, 0, 0, 0.045);
-  --footer-bg: rgba(255, 255, 255, 0.72);
+  --footer-bg: rgba(255, 255, 255, 0.68);
   --tab-active-bg: rgba(0, 0, 114, 0.08);
-  --btn-sec-bg: rgba(255, 255, 255, 0.75);
+  --btn-sec-bg: rgba(255, 255, 255, 0.72);
   --btn-sec-hover: #ffffff;
   --timeline-line: rgba(0, 0, 114, 0.35);
 
@@ -60,7 +60,7 @@
   --card-bg: rgba(255, 255, 255, 0.08);
   --input-bg: rgba(0, 0, 80, 0.6);
   --table-hover: rgba(255, 255, 255, 0.08);
-  --backdrop-overlay: rgba(0, 0, 114, 0.9);
+  --backdrop-overlay: rgba(0, 0, 50, 0.58);
   --grid-line-color: rgba(255, 255, 255, 0.05);
   --footer-bg: rgba(0, 0, 88, 0.82);
   --tab-active-bg: rgba(255, 255, 255, 0.18);

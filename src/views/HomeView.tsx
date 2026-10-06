@@ -1,6 +1,6 @@
-import React from 'react';
-import { TileGrid } from '../components/TileGrid';
+import React, { useRef } from 'react';
 import { ViewType, User } from '../types';
+import { VariableProximity } from '../components/VariableProximity';
 
 interface HomeViewProps {
   currentUser: User | null;
@@ -13,10 +13,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onNavigate,
   onOpenAuth,
 }) => {
+  const headlineRef = useRef<HTMLHeadingElement>(null);
+
   const handleSubmitClick = () => {
     if (!currentUser) {
       onOpenAuth('Please sign in to submit your artwork.');
-    } else if (currentUser.role === 'admin') {
+    } else if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
       onNavigate('admin');
     } else {
       onNavigate('submit');
@@ -26,7 +28,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const handleTrackClick = () => {
     if (!currentUser) {
       onOpenAuth('Please sign in to track your submissions.');
-    } else if (currentUser.role === 'admin') {
+    } else if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
       onNavigate('admin');
     } else {
       onNavigate('track');
@@ -36,21 +38,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   return (
     <div>
       {/* Hero Section */}
-      <section
-        style={{
-          position: 'relative',
-          padding: '40px 24px 120px',
-          minHeight: '720px',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}
-      >
-        {/* Dot grid at bottom of hero: 28 cols x 14 rows (smaller & denser) */}
-        <TileGrid cols={28} rows={14} shape="circle" />
-
-        {/* Content above tile grid */}
+      <section className="home-hero-section">
+        {/* Content above background */}
         <div
           style={{
             position: 'relative',
@@ -70,8 +59,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
             Editorial<br />submissions
           </div>
 
-          {/* Headline */}
+          {/* Headline with Magnetic Variable Proximity Typography */}
           <h1
+            ref={headlineRef}
             className="font-headline"
             style={{
               fontSize: 'clamp(46px, 13vw, 168px)',
@@ -79,10 +69,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
               letterSpacing: '-0.045em',
               fontWeight: 600,
               margin: '0 0 28px',
+              position: 'relative',
+              cursor: 'default',
             }}
           >
             <span className="headline-hero-title">
-              Your art.
+              <VariableProximity
+                label="Your art."
+                fromFontVariationSettings="'wght' 600, 'opsz' 24"
+                toFontVariationSettings="'wght' 800, 'opsz' 96"
+                containerRef={headlineRef}
+                radius={160}
+                falloff="gaussian"
+              />
             </span>
             <span
               className="accent-gradient"
@@ -93,7 +92,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 marginBottom: '-0.12em',
               }}
             >
-              Your story.
+              <VariableProximity
+                label="Your story."
+                fromFontVariationSettings="'wght' 600, 'opsz' 24"
+                toFontVariationSettings="'wght' 800, 'opsz' 96"
+                containerRef={headlineRef}
+                radius={160}
+                falloff="gaussian"
+              />
             </span>
           </h1>
 
@@ -107,7 +113,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               margin: '0 0 36px',
             }}
           >
-            yours. is a place to send us what you made. A curator reads every entry, tells you where it stands, and asks for changes when it needs them. Nothing disappears into an inbox.
+            yours is a place to send us what you made. A curator reads every entry, tells you where it stands, and asks for changes when it needs them. Nothing disappears into an inbox.
           </p>
 
           {/* Action Buttons */}
@@ -132,3 +138,5 @@ export const HomeView: React.FC<HomeViewProps> = ({
     </div>
   );
 };
+
+export default HomeView;

@@ -6,6 +6,7 @@ import { categoryService } from '../services/categoryService';
 import { Drawer } from '../components/Drawer';
 import { Modal } from '../components/Modal';
 import { CustomDropdown } from '../components/CustomDropdown';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface AdminViewProps {
   repository: ISubmissionRepository;
@@ -135,7 +136,69 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [userSortField, setUserSortField] = useState<'name' | 'role' | 'count' | 'index'>('name');
   const [userSortOrder, setUserSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  const isAdmin = currentUser?.role === 'admin';
+  // Custom Frosted Glass Confirmation / Alert Dialog State
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDestructive?: boolean;
+    type?: 'confirm' | 'alert' | 'danger';
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const showConfirm = (opts: {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDestructive?: boolean;
+    type?: 'confirm' | 'alert' | 'danger';
+    onConfirm: () => void;
+  }) => {
+    setDialogState({
+      isOpen: true,
+      title: opts.title,
+      message: opts.message,
+      confirmLabel: opts.confirmLabel,
+      cancelLabel: opts.cancelLabel,
+      isDestructive: opts.isDestructive,
+      type: opts.type || (opts.isDestructive ? 'danger' : 'confirm'),
+      onConfirm: () => {
+        setDialogState((prev) => ({ ...prev, isOpen: false }));
+        opts.onConfirm();
+      },
+      onCancel: () => {
+        setDialogState((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
+
+  const showAlert = (title: string, message: string) => {
+    setDialogState({
+      isOpen: true,
+      title,
+      message,
+      type: 'alert',
+      confirmLabel: 'OK',
+      onConfirm: () => {
+        setDialogState((prev) => ({ ...prev, isOpen: false }));
+      },
+      onCancel: () => {
+        setDialogState((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
+
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+  const isSuperAdmin = currentUser?.role === 'superadmin';
 
   // Load Submissions
   const loadSubmissions = useCallback(async () => {
@@ -157,6 +220,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   useEffect(() => {
     loadSubmissions();
+    refreshUsers();
   }, [loadSubmissions]);
 
   // Subscribe to category changes
@@ -280,7 +344,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   // Filtered & Sorted Users Logic
   const filteredUsers = useMemo(() => {
-    let list = users.map((u, idx) => {
+    // Only superadmin can see superadmin accounts; regular admins cannot see them
+    const visibleUsers = isSuperAdmin
+      ? users
+      : users.filter((u) => u.role !== 'superadmin');
+
+    let list = visibleUsers.map((u, idx) => {
       const count = submissions.filter(
         (s) => s.email.trim().toLowerCase() === u.email.trim().toLowerCase()
       ).length;
@@ -312,7 +381,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
     });
 
     return list;
-  }, [users, submissions, userSearchQuery, userSortField, userSortOrder]);
+  }, [users, submissions, userSearchQuery, userSortField, userSortOrder, isSuperAdmin]);
 
   // Category Actions
   const handleAddCategory = (e: React.FormEvent) => {
@@ -380,46 +449,103 @@ export const AdminView: React.FC<AdminViewProps> = ({
     const count = submissions.filter((s) => s.cat.toLowerCase() === catName.toLowerCase()).length;
     const warning =
       count > 0
-        ? `There are ${count} artworks under "${catName}". Are you sure you want to delete this category?`
-        : `Delete category "${catName}"?`;
+        ? `There are currently ${count} artworks categorized under "${catName}". Are you sure you want to permanently delete this category?`
+        : `Are you sure you want to delete category "${catName}"?`;
 
-    if (confirm(warning)) {
-      const res = categoryService.deleteCategory(catName);
-      if (!res.success) {
-        alert(res.error);
-        return;
-      }
-      setCategories(res.categories);
-      if (categoryFilter.toLowerCase() === catName.toLowerCase()) {
-        setCategoryFilter('all');
-      }
-    }
+    showConfirm({
+      title: 'Delete Category',
+      message: warning,
+      confirmLabel: 'Delete Category',
+      isDestructive: true,
+      onConfirm: () => {
+        const res = categoryService.deleteCategory(catName);
+        if (!res.success) {
+          showAlert('Cannot Delete Category', res.error || 'Failed to delete category.');
+          return;
+        }
+        setCategories(res.categories);
+        if (categoryFilter.toLowerCase() === catName.toLowerCase()) {
+          setCategoryFilter('all');
+        }
+      },
+    });
   };
 
   const handleResetCategories = () => {
-    if (confirm('Reset categories list back to the default 8 categories?')) {
-      const reset = categoryService.resetToDefault();
-      setCategories(reset);
-    }
+    showConfirm({
+      title: 'Reset Categories',
+      message: 'Are you sure you want to reset the categories list back to the default 8 categories?',
+      confirmLabel: 'Reset Categories',
+      isDestructive: false,
+      onConfirm: () => {
+        const reset = categoryService.resetToDefault();
+        setCategories(reset);
+      },
+    });
   };
 
   // User Actions
-  const refreshUsers = () => {
-    setUsers(authService.getAllUsers());
+  const refreshUsers = async () => {
+    const list = await authService.fetchProfiles();
+    setUsers([...list]);
   };
 
   const handleDeleteUser = (u: StoredAccount) => {
     if (u.id === currentUser?.id) {
-      alert('You cannot delete your own active account.');
+      showAlert('Action Not Allowed', 'You cannot delete your own active administrator account.');
       return;
     }
-    if (confirm(`Are you sure you want to delete user ${u.name} (${u.email})?`)) {
-      authService.deleteUser(u.id);
-      refreshUsers();
-    }
+
+    showConfirm({
+      title: 'Delete User Account',
+      message: `Are you sure you want to permanently delete user "${u.name}" (${u.email})? This action cannot be undone.`,
+      confirmLabel: 'Delete User',
+      isDestructive: true,
+      onConfirm: async () => {
+        const success = await authService.deleteUser(u.id);
+        if (success) {
+          await refreshUsers();
+          setUserSuccess(`User "${u.name}" has been deleted.`);
+          setTimeout(() => setUserSuccess(''), 3500);
+        } else {
+          showAlert('Failed', 'Failed to delete user account.');
+        }
+      },
+    });
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleToggleRole = (u: StoredAccount) => {
+    if (!isSuperAdmin) {
+      showAlert('Access Denied', 'Only Superadmin can change user roles.');
+      return;
+    }
+    if (u.id === currentUser?.id) {
+      showAlert('Action Not Allowed', 'You cannot change your own Superadmin role.');
+      return;
+    }
+
+    const newRole: UserRole = u.role === 'admin' ? 'creator' : 'admin';
+    const actionName = newRole === 'admin' ? 'Promote to Admin' : 'Demote to Creator';
+
+    showConfirm({
+      title: actionName,
+      message: `Are you sure you want to ${newRole === 'admin' ? 'promote' : 'demote'} user "${u.name}" (${u.email}) to ${newRole}?`,
+      confirmLabel: actionName,
+      isDestructive: newRole === 'creator',
+      onConfirm: async () => {
+        const success = await authService.updateUserRole(u.id, newRole);
+        if (success) {
+          await refreshUsers();
+          setUserSuccess(`User "${u.name}" is now an ${newRole}.`);
+          setTimeout(() => setUserSuccess(''), 3500);
+        } else {
+          showAlert('Failed', 'Failed to update user role.');
+        }
+      },
+    });
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setUserError('');
     try {
@@ -427,8 +553,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
         setUserError('All fields are required.');
         return;
       }
-      authService.createUser(newUserName, newUserEmail, newUserPass, newUserRole);
-      refreshUsers();
+      if (newUserPass.trim().length < 8) {
+        setUserError('Password must be at least 8 characters.');
+        return;
+      }
+      await authService.createUser(newUserName, newUserEmail, newUserPass, newUserRole);
+      await refreshUsers();
       setNewUserName('');
       setNewUserEmail('');
       setNewUserPass('');
@@ -472,18 +602,24 @@ export const AdminView: React.FC<AdminViewProps> = ({
       );
     } catch (err) {
       console.error('Failed to update status', err);
-      alert('Failed to update status. Please try again.');
+      showAlert('Update Failed', 'Failed to update artwork curation status. Please try again.');
     }
   };
 
-  const handleResetData = async () => {
-    if (confirm('Are you sure you want to reset all data back to the seed submissions?')) {
-      const seed = await repository.resetToSeed();
-      setSubmissions(seed);
-      setSelectedSubmission(null);
-      setIsDrawerOpen(false);
-      setIsModalOpen(false);
-    }
+  const handleResetData = () => {
+    showConfirm({
+      title: 'Reset Sample Data',
+      message: 'Are you sure you want to reset all submission data back to the default seed submissions? Any new entries will be cleared.',
+      confirmLabel: 'Reset All Data',
+      isDestructive: true,
+      onConfirm: async () => {
+        const seed = await repository.resetToSeed();
+        setSubmissions(seed);
+        setSelectedSubmission(null);
+        setIsDrawerOpen(false);
+        setIsModalOpen(false);
+      },
+    });
   };
 
   if (!isAdmin) {
@@ -1484,27 +1620,42 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           </svg>
                         )
                       }
-                      options={[
-                        {
-                          value: 'creator',
-                          label: 'Creator (Contributor)',
-                          icon: (
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                              <circle cx="12" cy="7" r="4" />
-                            </svg>
-                          ),
-                        },
-                        {
-                          value: 'admin',
-                          label: 'Admin (Editorial Curator)',
-                          icon: (
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                            </svg>
-                          ),
-                        },
-                      ]}
+                      options={
+                        isSuperAdmin
+                          ? [
+                              {
+                                value: 'creator',
+                                label: 'Creator (Contributor)',
+                                icon: (
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                  </svg>
+                                ),
+                              },
+                              {
+                                value: 'admin',
+                                label: 'Admin (Editorial Curator)',
+                                icon: (
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                  </svg>
+                                ),
+                              },
+                            ]
+                          : [
+                              {
+                                value: 'creator',
+                                label: 'Creator (Contributor)',
+                                icon: (
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                  </svg>
+                                ),
+                              },
+                            ]
+                      }
                     />
                   </div>
                 </div>
@@ -1728,12 +1879,32 @@ export const AdminView: React.FC<AdminViewProps> = ({
                             <span
                               className="minimal-pill"
                               style={{
-                                background: u.role === 'admin' ? 'rgba(0, 0, 114, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-                                color: u.role === 'admin' ? 'var(--cb)' : 'var(--bk)',
+                                background:
+                                  u.role === 'superadmin'
+                                    ? 'linear-gradient(135deg, rgba(11, 32, 230, 0.15), rgba(111, 155, 255, 0.2))'
+                                    : u.role === 'admin'
+                                    ? 'rgba(0, 0, 114, 0.08)'
+                                    : 'rgba(0, 0, 0, 0.04)',
+                                color: u.role === 'superadmin' || u.role === 'admin' ? 'var(--cb)' : 'var(--bk)',
                                 fontWeight: 600,
+                                border: u.role === 'superadmin' ? '1px solid var(--cb-light)' : 'none',
                               }}
                             >
-                              {u.role === 'admin' ? (
+                              {u.role === 'superadmin' ? (
+                                <>
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    stroke="none"
+                                    aria-hidden="true"
+                                  >
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                  </svg>
+                                  <span>Super Admin</span>
+                                </>
+                              ) : u.role === 'admin' ? (
                                 <>
                                   <svg
                                     width="12"
@@ -1779,27 +1950,49 @@ export const AdminView: React.FC<AdminViewProps> = ({
                             </span>
                           </td>
 
-                          {/* Action: Delete */}
-                          <td style={{ textAlign: 'right' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteUser(u)}
-                              disabled={isSelf}
-                              title={isSelf ? 'Cannot delete your active account' : `Delete user ${u.name}`}
-                              style={{
-                                background: 'none',
-                                border: '1px solid rgba(229, 48, 58, 0.25)',
-                                borderRadius: '999px',
-                                padding: '5px 12px',
-                                fontSize: '12px',
-                                color: 'var(--rd)',
-                                cursor: isSelf ? 'not-allowed' : 'pointer',
-                                opacity: isSelf ? 0.35 : 1,
-                                fontWeight: 600,
-                              }}
-                            >
-                              Delete
-                            </button>
+                          {/* Action: Promote/Demote (Only for Superadmin) + Delete */}
+                          <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                            <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
+                              {isSuperAdmin && u.role !== 'superadmin' && !isSelf && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleRole(u)}
+                                  title={u.role === 'admin' ? 'Demote to Creator' : 'Promote to Admin'}
+                                  style={{
+                                    background: u.role === 'admin' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(0, 0, 114, 0.08)',
+                                    border: `1px solid ${u.role === 'admin' ? 'var(--ln)' : 'var(--cb-light)'}`,
+                                    borderRadius: '999px',
+                                    padding: '5px 12px',
+                                    fontSize: '12px',
+                                    color: u.role === 'admin' ? 'var(--bk)' : 'var(--cb)',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {u.role === 'admin' ? 'Demote' : 'Promote to Admin'}
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUser(u)}
+                                disabled={isSelf}
+                                title={isSelf ? 'Cannot delete your active account' : `Delete user ${u.name}`}
+                                style={{
+                                  background: 'none',
+                                  border: '1px solid rgba(229, 48, 58, 0.25)',
+                                  borderRadius: '999px',
+                                  padding: '5px 12px',
+                                  fontSize: '12px',
+                                  color: 'var(--rd)',
+                                  cursor: isSelf ? 'not-allowed' : 'pointer',
+                                  opacity: isSelf ? 0.35 : 1,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1826,6 +2019,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={(feedback) => handleStatusUpdate('revision', feedback)}
+      />
+
+      {/* Custom Frosted Glass Alert / Confirm Modal */}
+      <ConfirmModal
+        isOpen={dialogState.isOpen}
+        title={dialogState.title}
+        message={dialogState.message}
+        confirmLabel={dialogState.confirmLabel}
+        cancelLabel={dialogState.cancelLabel}
+        isDestructive={dialogState.isDestructive}
+        type={dialogState.type}
+        onConfirm={dialogState.onConfirm}
+        onCancel={dialogState.onCancel}
       />
     </main>
   );

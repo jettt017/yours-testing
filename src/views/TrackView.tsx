@@ -139,7 +139,7 @@ export const TrackView: React.FC<TrackViewProps> = ({
 
   return (
     <main className="main-container" style={{ maxWidth: '840px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+      <div className="track-header-actions">
         <div>
           <h2 className="page-title">My Submissions</h2>
           <p className="page-subtitle" style={{ margin: 0 }}>
@@ -180,32 +180,32 @@ export const TrackView: React.FC<TrackViewProps> = ({
         <div>
           {/* If multiple submissions, modern smooth scrollable pill carousel */}
           {userSubmissions.length > 1 && (
-            <div style={{ position: 'relative', marginBottom: '24px' }}>
-              {/* Left Scroll Chevron Button */}
+            <div className="carousel-scroll-wrapper">
+              {/* Left Scroll Chevron Button (Desktop Only) */}
               {canScrollLeft && (
                 <button
                   type="button"
                   onClick={() => scrollHorizontally(-220)}
                   aria-label="Scroll left"
+                  className="carousel-chevron-desktop"
                   style={{
                     position: 'absolute',
                     left: '-12px',
                     top: '50%',
                     transform: 'translateY(-50%)',
                     zIndex: 10,
-                    width: '32px',
-                    height: '32px',
+                    width: '34px',
+                    height: '34px',
                     borderRadius: '50%',
                     backgroundColor: 'var(--card-bg)',
-                    border: '1px solid var(--ln)',
+                    border: '1px solid var(--panel-border)',
                     color: 'var(--bk)',
-                    display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
+                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
                     transition: 'all 0.15s ease',
                   }}
                 >
@@ -223,7 +223,7 @@ export const TrackView: React.FC<TrackViewProps> = ({
                   display: 'flex',
                   gap: '10px',
                   overflowX: 'auto',
-                  padding: '6px 8px',
+                  padding: '6px 4px',
                   scrollBehavior: 'smooth',
                   WebkitOverflowScrolling: 'touch',
                   WebkitMaskImage:
@@ -263,22 +263,25 @@ export const TrackView: React.FC<TrackViewProps> = ({
                         alignItems: 'center',
                         gap: '8px',
                         borderRadius: '999px',
-                        padding: '8px 16px',
+                        padding: '8px 18px',
                         border: isSelected
                           ? '1px solid var(--cb)'
-                          : '1px solid var(--ln)',
+                          : '1px solid var(--panel-border)',
                         backgroundColor: isSelected
                           ? 'var(--tab-active-bg)'
                           : 'var(--card-bg)',
+                        backdropFilter: 'blur(14px)',
+                        WebkitBackdropFilter: 'blur(14px)',
                         color: isSelected ? 'var(--cb)' : 'var(--bk)',
                         fontWeight: 600,
                         fontSize: '13px',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
                         flexShrink: 0,
+                        maxWidth: 'min(280px, 85vw)',
                         boxShadow: isSelected
-                          ? '0 2px 10px rgba(0, 0, 114, 0.12)'
-                          : 'none',
+                          ? '0 4px 16px rgba(0, 0, 114, 0.14)'
+                          : '0 2px 8px rgba(0, 0, 0, 0.04)',
                         transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                       }}
                     >
@@ -303,7 +306,7 @@ export const TrackView: React.FC<TrackViewProps> = ({
                       />
                       <span
                         style={{
-                          maxWidth: '150px',
+                          maxWidth: '140px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           lineHeight: 1.2,
@@ -326,31 +329,31 @@ export const TrackView: React.FC<TrackViewProps> = ({
                 })}
               </div>
 
-              {/* Right Scroll Chevron Button */}
+              {/* Right Scroll Chevron Button (Desktop Only) */}
               {canScrollRight && (
                 <button
                   type="button"
                   onClick={() => scrollHorizontally(220)}
                   aria-label="Scroll right"
+                  className="carousel-chevron-desktop"
                   style={{
                     position: 'absolute',
                     right: '-12px',
                     top: '50%',
                     transform: 'translateY(-50%)',
                     zIndex: 10,
-                    width: '32px',
-                    height: '32px',
+                    width: '34px',
+                    height: '34px',
                     borderRadius: '50%',
                     backgroundColor: 'var(--card-bg)',
-                    border: '1px solid var(--ln)',
+                    border: '1px solid var(--panel-border)',
                     color: 'var(--bk)',
-                    display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
+                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
                     transition: 'all 0.15s ease',
                   }}
                 >
@@ -362,27 +365,50 @@ export const TrackView: React.FC<TrackViewProps> = ({
             </div>
           )}
 
-          {/* Active Submission Card */}
+          {/* Active Submission Card with Fluid Typography & Word Breaking */}
           {selectedSub && (
-            <div className="glass-panel" style={{ padding: '36px 30px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '28px' }}>
-                <div>
+            <div className="glass-panel track-detail-card">
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  flexWrap: 'wrap',
+                  gap: '14px',
+                  marginBottom: '26px',
+                }}
+              >
+                <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                   <h3
                     className="font-headline"
                     style={{
-                      fontSize: '32px',
-                      margin: '0 0 6px',
+                      fontSize: 'clamp(24px, 5.5vw, 34px)',
+                      margin: '0 0 8px',
                       color: 'var(--bk)',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
+                      lineHeight: 1.18,
                     }}
                   >
                     {selectedSub.title}
                   </h3>
-                  <div style={{ fontSize: '15px', color: 'var(--mt)' }}>
+                  <div
+                    style={{
+                      fontSize: '14px',
+                      color: 'var(--mt)',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
+                      lineHeight: 1.4,
+                    }}
+                  >
                     {selectedSub.id} · {selectedSub.cat} {selectedSub.year && `(${selectedSub.year})`}
                   </div>
                 </div>
 
-                <span className={`status-tag status-${selectedSub.status}`}>
+                <span
+                  className={`status-tag status-${selectedSub.status}`}
+                  style={{ alignSelf: 'flex-start', flexShrink: 0 }}
+                >
                   {STATUS_TAG_LABELS[selectedSub.status]}
                 </span>
               </div>
@@ -581,11 +607,14 @@ export const TrackView: React.FC<TrackViewProps> = ({
               {/* Revision Required Callout */}
               {selectedSub.status === 'revision' && (
                 <div
+                  className="track-revision-box"
                   style={{
-                    border: '1px solid var(--rd)',
+                    border: '1px solid rgba(229, 48, 58, 0.35)',
                     backgroundColor: 'rgba(229, 48, 58, 0.08)',
-                    padding: '20px 24px',
-                    borderRadius: '12px',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    boxShadow: '0 8px 24px rgba(229, 48, 58, 0.08)',
+                    borderRadius: '16px',
                     marginTop: '28px',
                   }}
                 >

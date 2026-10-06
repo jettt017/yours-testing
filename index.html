@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0" />
     <title>yours</title>
-    <link rel="icon" type="image/png" href="/Logo.png" />
+    <!-- Native media-query favicons: 64x64 transparent icons -->
+    <link rel="icon" type="image/png" href="/favicon-white-64.png?v=3" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" href="/favicon-dark-64.png?v=3" media="(prefers-color-scheme: light)" />
     <meta name="description" content="Editorial curation platform where creators submit their artwork." />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,14 +21,35 @@
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap"
       rel="stylesheet"
     />
-    <!-- Theme detection anti-flash script -->
+    <!-- Theme detection anti-flash & dynamic favicon script -->
     <script>
       (function() {
         try {
-          var saved = localStorage.getItem('yours-theme');
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var theme = saved || (prefersDark ? 'dark' : 'light');
+          // Clear old stale manual locks from prior testing sessions
+          if (!localStorage.getItem('yours-theme-v2')) {
+            localStorage.removeItem('yours-theme');
+            localStorage.removeItem('yours-theme-manual');
+          }
+
+          var manual = localStorage.getItem('yours-theme-v2');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = (manual === 'dark' || manual === 'light') ? manual : (prefersDark ? 'dark' : 'light');
           document.documentElement.setAttribute('data-theme', theme);
+
+          var isDark = theme === 'dark';
+          var targetHref = isDark ? '/favicon-white-64.png?v=3' : '/favicon-dark-64.png?v=3';
+          
+          // Re-create link element so Edge/Chrome repaints the tab icon immediately
+          var links = document.querySelectorAll("link[rel*='icon']");
+          links.forEach(function(el) {
+            if (el.parentNode) el.parentNode.removeChild(el);
+          });
+          var newLink = document.createElement('link');
+          newLink.id = 'app-favicon';
+          newLink.rel = 'icon';
+          newLink.type = 'image/png';
+          newLink.href = targetHref;
+          document.head.appendChild(newLink);
         } catch (e) {}
       })();
     </script>

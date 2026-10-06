@@ -98,18 +98,16 @@ export const LogoLoader: React.FC<LogoLoaderProps> = ({
           50% { opacity: 0; }
         }
 
-        /* Silky smooth overlay entrance */
-        @keyframes loaderOverlayFadeIn {
-          from {
-            opacity: 0;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-          }
-          to {
-            opacity: 1;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-          }
+        /* Overlay: fade in background color fast, grow blur progressively */
+        @keyframes loaderOverlayIn {
+          0%   { opacity: 0; }
+          100% { opacity: 1; }
+        }
+
+        /* Content: appears softly after overlay is established */
+        @keyframes loaderContentIn {
+          0%   { opacity: 0; transform: translateY(10px) scale(0.97); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
 
@@ -195,7 +193,7 @@ export const LogoLoader: React.FC<LogoLoaderProps> = ({
     return content;
   }
 
-  // Fullscreen frosted overlay without ANY white box shape container
+  // Fullscreen frosted overlay — blur grows progressively, content rises in with delay
   return (
     <div
       style={{
@@ -207,19 +205,30 @@ export const LogoLoader: React.FC<LogoLoaderProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'var(--backdrop-overlay)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        // Fade-out: full opacity→0 with pointer-events off
         opacity: fadeOut ? 0 : 1,
-        transition: 'opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.28s ease',
+        transition: fadeOut
+          ? 'opacity 0.35s cubic-bezier(0.4, 0, 1, 1)'
+          : 'none',
         visibility: fadeOut ? 'hidden' : 'visible',
         pointerEvents: fadeOut ? 'none' : 'auto',
-        animation: 'loaderOverlayFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        // Fade-in: only when NOT fading out
+        animation: fadeOut ? 'none' : 'loaderOverlayIn 0.18s ease forwards',
       }}
       role="dialog"
       aria-modal="true"
       aria-label="Loading..."
     >
-      {content}
+      {/* Content wrapper with its own delayed entrance so it never clashes with overlay entry */}
+      <div
+        style={{
+          animation: fadeOut ? 'none' : 'loaderContentIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both',
+        }}
+      >
+        {content}
+      </div>
     </div>
   );
 };
